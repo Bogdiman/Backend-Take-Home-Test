@@ -11,7 +11,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = SleepIntervalValidator.class)
 public @interface ValidSleepInterval {
-    String message() default "Wake time must be after bed time";
+    String message() default "Invalid sleep interval";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
+    
+    int minMinutes() default 30;
+    int maxMinutes() default 1440; // 24 hours
 }
