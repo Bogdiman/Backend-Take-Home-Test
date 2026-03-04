@@ -4,6 +4,8 @@ import com.noom.interview.fullstack.sleep.dto.SleepAveragesResponse;
 import com.noom.interview.fullstack.sleep.model.MorningFeeling;
 import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.repository.SleepLogRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 public class SleepLogService {
 
+    private static final Logger log = LoggerFactory.getLogger(SleepLogService.class);
+
     private static final int AVERAGING_PERIOD_DAYS = 30;
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
     private static final int NOON_IN_SECONDS = 12 * 60 * 60;
@@ -31,8 +35,17 @@ public class SleepLogService {
     public SleepLog createSleepLog(Integer userId, LocalDateTime bedTime, 
                                     LocalDateTime wakeTime, MorningFeeling morningFeeling) {
         LocalDate today = LocalDate.now();
-        SleepLog sleepLog = repository.findByUserIdAndSleepDate(userId, today)
-                .orElse(new SleepLog());
+        Optional<SleepLog> existing = repository.findByUserIdAndSleepDate(userId, today);
+        
+        SleepLog sleepLog;
+        if (existing.isPresent()) {
+            sleepLog = existing.get();
+            log.info("Updating existing sleep log id={} for userId={} on date={}", 
+                    sleepLog.getId(), userId, today);
+        } else {
+            sleepLog = new SleepLog();
+            log.info("Creating new sleep log for userId={} on date={}", userId, today);
+        }
 
         sleepLog.setUserId(userId);
         sleepLog.setSleepDate(today);
@@ -40,26 +53,37 @@ public class SleepLogService {
         sleepLog.setWakeTime(wakeTime);
         sleepLog.setMorningFeeling(morningFeeling);
 
-        return repository.save(sleepLog);
+        SleepLog saved = repository.save(sleepLog);
+        log.debug("Saved sleep log id={} with totalTimeInBed={} minutes", 
+                saved.getId(), saved.getTotalTimeInBedMinutes());
+        return saved;
     }
 
     public Optional<SleepLog> getLastNightSleep(Integer userId) {
         LocalDate today = LocalDate.now();
-        return repository.findByUserIdAndSleepDate(userId, today);
+        log.debug("Looking up sleep log for userId={} on date={}", userId, today);
+        Optional<SleepLog> result = repository.findByUserIdAndSleepDate(userId, today);
+        if (result.isEmpty()) {
+            log.debug("No sleep log found for userId={} on date={}", userId, today);
+        }
+        return result;
     }
 
     public Optional<SleepAveragesResponse> getLast30DayAverages(Integer userId) {
         LocalDate endDate = LocalDate.now();
-        // 30th day is today, so we subtract 29 days to get the start date
         LocalDate startDate = endDate.minusDays(AVERAGING_PERIOD_DAYS - 1);
 
+        log.debug("Fetching sleep logs for userId={} from {} to {}", userId, startDate, endDate);
         List<SleepLog> sleepLogs = repository.findByUserIdAndSleepDateBetween(userId, startDate, endDate);
 
         if (sleepLogs.isEmpty()) {
+            log.info("No sleep logs found for userId={} in period {} to {}", userId, startDate, endDate);
             return Optional.empty();
         }
 
-        return Optional.of(new SleepAveragesResponse(
+        log.debug("Found {} sleep logs for userId={}, calculating averages", sleepLogs.size(), userId);
+        
+        SleepAveragesResponse response = new SleepAveragesResponse(
                 startDate,
                 endDate,
                 sleepLogs.size(),
@@ -67,7 +91,12 @@ public class SleepLogService {
                 calculateAverageBedTime(sleepLogs),
                 calculateAverageWakeTime(sleepLogs),
                 createMorningFeelingMapCounter(sleepLogs)
-        ));
+        );
+        
+        log.info("Calculated averages for userId={}: avgBedTime={}, avgWakeTime={}, avgTimeInBed={} min",
+                userId, response.getAverageBedTime(), response.getAverageWakeTime(), response.getAverageTotalTimeInBedMinutes());
+        
+        return Optional.of(response);
     }
 
     /***

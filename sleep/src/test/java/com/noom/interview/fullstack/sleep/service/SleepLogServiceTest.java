@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -159,5 +160,39 @@ class SleepLogServiceTest {
         assertThat(result).isPresent();
         SleepAveragesResponse response = result.get();
         assertThat(response.getAverageTotalTimeInBedMinutes()).isEqualTo(480);
+    }
+
+    @Test
+    void getLast30DayAverages_shouldCalculateNonRoundAverageTimes() {
+        LocalDate today = LocalDate.now();
+
+        // Bed times: 22:10, 22:40, 23:20 → average = 22:43:20
+        // Wake times: 6:10, 6:40, 7:20 → average = 6:43:20
+        SleepLog log1 = new SleepLog(1, today.minusDays(1),
+                LocalDateTime.of(2026, 3, 1, 22, 10),
+                LocalDateTime.of(2026, 3, 2, 6, 10),
+                MorningFeeling.GOOD);
+        SleepLog log2 = new SleepLog(1, today.minusDays(2),
+                LocalDateTime.of(2026, 2, 28, 22, 40),
+                LocalDateTime.of(2026, 3, 1, 6, 40),
+                MorningFeeling.OK);
+        SleepLog log3 = new SleepLog(1, today.minusDays(3),
+                LocalDateTime.of(2026, 2, 27, 23, 20),
+                LocalDateTime.of(2026, 2, 28, 7, 20),
+                MorningFeeling.GOOD);
+
+        when(repository.findByUserIdAndSleepDateBetween(any(), any(), any()))
+                .thenReturn(Arrays.asList(log1, log2, log3));
+
+        Optional<SleepAveragesResponse> result = service.getLast30DayAverages(1);
+
+        assertThat(result).isPresent();
+        SleepAveragesResponse response = result.get();
+
+        // Average bed time: (22:10 + 22:40 + 23:20) / 3 = 22:43:20
+        assertThat(response.getAverageBedTime()).isEqualTo(LocalTime.of(22, 43, 20));
+
+        // Average wake time: (6:10 + 6:40 + 7:20) / 3 = 6:43:20
+        assertThat(response.getAverageWakeTime()).isEqualTo(LocalTime.of(6, 43, 20));
     }
 }
