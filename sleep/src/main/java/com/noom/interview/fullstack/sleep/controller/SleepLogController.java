@@ -4,6 +4,8 @@ import com.noom.interview.fullstack.sleep.dto.CreateSleepLogRequest;
 import com.noom.interview.fullstack.sleep.dto.SleepAveragesResponse;
 import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.service.SleepLogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +33,8 @@ public class SleepLogController {
     public SleepLog createSleepLog(
             @RequestHeader("X-User-Id") Integer userId,
             @Valid @RequestBody CreateSleepLogRequest request) {
-        return service.createSleepLog(userId, request.getBedTime(), request.getWakeTime(), request.getMorningFeeling());
+        return service.createSleepLog(userId, request.getSleepDate(), request.getBedTime(), 
+                request.getWakeTime(), request.getMorningFeeling());
     }
 
     @GetMapping("/last-night")

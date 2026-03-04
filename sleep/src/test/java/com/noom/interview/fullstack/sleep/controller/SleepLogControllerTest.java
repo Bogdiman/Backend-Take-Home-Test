@@ -57,7 +57,7 @@ class SleepLogControllerTest {
                 request.getBedTime(), request.getWakeTime(), MorningFeeling.GOOD);
         savedLog.setId(1);
 
-        when(sleepLogService.createSleepLog(eq(1), any(), any(), any())).thenReturn(savedLog);
+        when(sleepLogService.createSleepLog(eq(1), any(), any(), any(), any())).thenReturn(savedLog);
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)
@@ -163,6 +163,34 @@ class SleepLogControllerTest {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
         request.setBedTime(LocalDateTime.of(2026, 3, 2, 23, 0));
         request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenSleepDurationTooShort() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.setBedTime(LocalDateTime.of(2026, 3, 3, 7, 0));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 20));
+        request.setMorningFeeling(MorningFeeling.BAD);
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenSleepDurationTooLong() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.setBedTime(LocalDateTime.of(2026, 3, 2, 0, 0));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 12, 0));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)
