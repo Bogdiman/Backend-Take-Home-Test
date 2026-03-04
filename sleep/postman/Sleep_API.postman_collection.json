@@ -1,0 +1,655 @@
+{
+	"info": {
+		"_postman_id": "sleep-api-collection",
+		"name": "Sleep API",
+		"description": "API collection for the Noom Sleep Tracking application.\n\nThis API allows users to log their sleep data and retrieve sleep statistics.\n\n## Authentication\nAll endpoints require an `X-User-Id` header to identify the user.\n\n## Endpoints\n- POST /api/sleep - Log sleep data\n- GET /api/sleep/last-night - Get last night's sleep\n- GET /api/sleep/averages - Get 30-day averages",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Sleep Logs",
+			"description": "Endpoints for creating and retrieving sleep logs",
+			"item": [
+				{
+					"name": "Create Sleep Log",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Create or update a sleep log.\n\n**Request Body:**\n- `sleepDate` (optional): The date to log sleep for (ISO 8601 format, e.g. \"2026-03-04\"). Defaults to today if not provided.\n- `bedTime` (required): DateTime when you went to bed (ISO 8601 format)\n- `wakeTime` (required): DateTime when you woke up (ISO 8601 format)\n- `morningFeeling` (required): How you felt in the morning - `BAD`, `OK`, or `GOOD`\n\n**Notes:**\n- Wake time must be after bed time\n- If a log already exists for the specified date, it will be updated"
+					},
+					"response": [
+						{
+							"name": "Success - Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-User-Id",
+										"value": "1"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/sleep",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "sleep"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": "{\n    \"id\": 1,\n    \"userId\": 1,\n    \"sleepDate\": \"2026-03-04\",\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\",\n    \"totalTimeInBedMinutes\": 510\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Sleep Log - Past Date",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sleepDate\": \"2026-02-15\",\n    \"bedTime\": \"2026-02-14T23:00:00\",\n    \"wakeTime\": \"2026-02-15T07:00:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Example creating a sleep log for a past date. Useful for backfilling historical data or testing the averages endpoint."
+					}
+				},
+				{
+					"name": "Create Sleep Log - Feeling OK",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-03T22:30:00\",\n    \"wakeTime\": \"2026-03-04T06:00:00\",\n    \"morningFeeling\": \"OK\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Example with 'OK' morning feeling"
+					}
+				},
+				{
+					"name": "Create Sleep Log - Feeling BAD",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-04T01:00:00\",\n    \"wakeTime\": \"2026-03-04T05:30:00\",\n    \"morningFeeling\": \"BAD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Example with 'BAD' morning feeling (short sleep)"
+					}
+				},
+				{
+					"name": "Get Last Night's Sleep",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep/last-night",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep", "last-night"]
+						},
+						"description": "Retrieve the sleep log for today (last night's sleep).\n\n**Response:**\n- Returns 200 with sleep log if found\n- Returns 404 if no sleep logged for today"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-Id",
+										"value": "1"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/sleep/last-night",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "sleep", "last-night"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": "{\n    \"id\": 1,\n    \"userId\": 1,\n    \"sleepDate\": \"2026-03-04\",\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\",\n    \"totalTimeInBedMinutes\": 510\n}"
+						},
+						{
+							"name": "Not Found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-Id",
+										"value": "999"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/sleep/last-night",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "sleep", "last-night"]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "text",
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Get 30-Day Averages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}",
+								"description": "User identifier"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep/averages",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep", "averages"]
+						},
+						"description": "Get sleep averages for the last 30 days.\n\n**Response includes:**\n- `startDate` / `endDate`: The 30-day period\n- `totalNights`: Number of nights with logged sleep\n- `averageTotalTimeInBedMinutes`: Average sleep duration\n- `averageBedTime` / `averageWakeTime`: Average times\n- `morningFeelingFrequencies`: Count of each feeling type\n\n**Returns 404 if no sleep data exists for the period**"
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-Id",
+										"value": "1"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/sleep/averages",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "sleep", "averages"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": "{\n    \"startDate\": \"2026-02-03\",\n    \"endDate\": \"2026-03-04\",\n    \"totalNights\": 15,\n    \"averageTotalTimeInBedMinutes\": 465,\n    \"averageBedTime\": \"23:15:00\",\n    \"averageWakeTime\": \"07:00:00\",\n    \"morningFeelingFrequencies\": {\n        \"GOOD\": 8,\n        \"OK\": 5,\n        \"BAD\": 2\n    }\n}"
+						},
+						{
+							"name": "Not Found - No Data",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-User-Id",
+										"value": "999"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/sleep/averages",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "sleep", "averages"]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "text",
+							"body": ""
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Validation Errors",
+			"description": "Examples of requests that trigger validation errors",
+			"item": [
+				{
+					"name": "Missing X-User-Id Header",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates error when X-User-Id header is missing. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Wake Time Before Bed Time",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-04T07:30:00\",\n    \"wakeTime\": \"2026-03-03T23:00:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when wake time is before bed time. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Missing Bed Time",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when bedTime is missing. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Missing Morning Feeling",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when morningFeeling is missing. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Invalid Morning Feeling Value",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-03T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:30:00\",\n    \"morningFeeling\": \"EXCELLENT\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates error when morningFeeling has invalid value. Valid values: BAD, OK, GOOD. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Sleep Duration Too Short",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-04T07:00:00\",\n    \"wakeTime\": \"2026-03-04T07:20:00\",\n    \"morningFeeling\": \"BAD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when sleep duration is too short (20 minutes). Minimum duration is 30 minutes. Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Sleep Duration Too Long",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bedTime\": \"2026-03-02T00:00:00\",\n    \"wakeTime\": \"2026-03-03T12:00:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when sleep duration is too long (36 hours). Maximum duration is 24 hours (1440 minutes). Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Wake Time Date Mismatch with Sleep Date",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sleepDate\": \"2026-03-04\",\n    \"bedTime\": \"2026-03-04T23:00:00\",\n    \"wakeTime\": \"2026-03-05T07:00:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when wake time date (2026-03-05) does not match sleep date (2026-03-04). Expected: 400 Bad Request"
+					}
+				},
+				{
+					"name": "Bed Time Date Too Early for Sleep Date",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-User-Id",
+								"value": "{{userId}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sleepDate\": \"2026-03-04\",\n    \"bedTime\": \"2026-03-02T23:00:00\",\n    \"wakeTime\": \"2026-03-04T07:00:00\",\n    \"morningFeeling\": \"GOOD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sleep",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sleep"]
+						},
+						"description": "Demonstrates validation error when bed time date (2026-03-02) is more than one day before sleep date (2026-03-04). Bed time must be on sleep date or the day before. Expected: 400 Bad Request (fails duration check first)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"description": "Test endpoint",
+			"item": [
+				{
+					"name": "Test Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/test",
+							"host": ["{{baseUrl}}"],
+							"path": ["test"]
+						},
+						"description": "Simple health check endpoint to verify the server is running."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/test",
+									"host": ["{{baseUrl}}"],
+									"path": ["test"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"body": "{\n    \"testMessage\": \"Hello world!\"\n}"
+						}
+					]
+				}
+			]
+		}
+	]
+}
