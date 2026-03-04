@@ -3,6 +3,7 @@ package com.noom.interview.fullstack.sleep.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.noom.interview.fullstack.sleep.dto.CreateSleepLogRequest;
+import com.noom.interview.fullstack.sleep.dto.SleepAveragesResponse;
 import com.noom.interview.fullstack.sleep.model.MorningFeeling;
 import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.service.SleepLogService;
@@ -16,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -165,6 +168,49 @@ class SleepLogControllerTest {
                         .header("X-User-Id", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getLast30DayAverages_shouldReturnAverages_whenDataExists() throws Exception {
+        SleepAveragesResponse response = new SleepAveragesResponse(
+                LocalDate.of(2026, 2, 2),
+                LocalDate.of(2026, 3, 3),
+                10,
+                480,
+                LocalTime.of(23, 0),
+                LocalTime.of(7, 0),
+                Map.of(MorningFeeling.GOOD, 5L, MorningFeeling.OK, 3L, MorningFeeling.BAD, 2L)
+        );
+
+        when(sleepLogService.getLast30DayAverages(1)).thenReturn(Optional.of(response));
+
+        mockMvc.perform(get("/api/sleep/averages")
+                        .header("X-User-Id", 1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.startDate").value("2026-02-02"))
+                .andExpect(jsonPath("$.endDate").value("2026-03-03"))
+                .andExpect(jsonPath("$.totalNights").value(10))
+                .andExpect(jsonPath("$.averageTotalTimeInBedMinutes").value(480))
+                .andExpect(jsonPath("$.averageBedTime").value("23:00:00"))
+                .andExpect(jsonPath("$.averageWakeTime").value("07:00:00"))
+                .andExpect(jsonPath("$.morningFeelingFrequencies.GOOD").value(5))
+                .andExpect(jsonPath("$.morningFeelingFrequencies.OK").value(3))
+                .andExpect(jsonPath("$.morningFeelingFrequencies.BAD").value(2));
+    }
+
+    @Test
+    void getLast30DayAverages_shouldReturnNotFound_whenNoData() throws Exception {
+        when(sleepLogService.getLast30DayAverages(1)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/sleep/averages")
+                        .header("X-User-Id", 1))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getLast30DayAverages_shouldReturnBadRequest_whenUserIdMissing() throws Exception {
+        mockMvc.perform(get("/api/sleep/averages"))
                 .andExpect(status().isBadRequest());
     }
 }

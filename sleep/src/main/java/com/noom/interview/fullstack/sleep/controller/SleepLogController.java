@@ -1,6 +1,7 @@
 package com.noom.interview.fullstack.sleep.controller;
 
 import com.noom.interview.fullstack.sleep.dto.CreateSleepLogRequest;
+import com.noom.interview.fullstack.sleep.dto.SleepAveragesResponse;
 import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.service.SleepLogService;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,13 @@ public class SleepLogController {
     @GetMapping("/last-night")
     public ResponseEntity<SleepLog> getLastNightSleep(@RequestHeader("X-User-Id") Integer userId) {
         return service.getLastNightSleep(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/averages")
+    public ResponseEntity<SleepAveragesResponse> getLast30DayAverages(@RequestHeader("X-User-Id") Integer userId) {
+        return service.getLast30DayAverages(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
