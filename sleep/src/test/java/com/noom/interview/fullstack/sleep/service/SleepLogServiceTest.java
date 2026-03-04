@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,25 +70,6 @@ class SleepLogServiceTest {
         assertThat(result.getId()).isEqualTo(1);
         assertThat(result.getMorningFeeling()).isEqualTo(MorningFeeling.OK);
         verify(repository).save(existingLog);
-    }
-
-    @Test
-    void createSleepLog_shouldThrowException_whenWakeTimeBeforeBedTime() {
-        LocalDateTime bedTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        LocalDateTime wakeTime = LocalDateTime.of(2026, 3, 2, 23, 0);
-
-        assertThatThrownBy(() -> service.createSleepLog(1, bedTime, wakeTime, MorningFeeling.GOOD))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Wake time must be after bed time");
-    }
-
-    @Test
-    void createSleepLog_shouldThrowException_whenWakeTimeEqualsBedTime() {
-        LocalDateTime sameTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-
-        assertThatThrownBy(() -> service.createSleepLog(1, sameTime, sameTime, MorningFeeling.GOOD))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Wake time must be after bed time");
     }
 
     @Test

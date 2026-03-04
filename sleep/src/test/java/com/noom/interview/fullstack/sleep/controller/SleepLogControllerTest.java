@@ -113,4 +113,58 @@ class SleepLogControllerTest {
         mockMvc.perform(get("/api/sleep/last-night"))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenWakeTimeBeforeBedTime() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.bedTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+        request.wakeTime = LocalDateTime.of(2026, 3, 2, 23, 0);
+        request.morningFeeling = MorningFeeling.GOOD;
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenWakeTimeEqualsBedTime() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.bedTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+        request.morningFeeling = MorningFeeling.GOOD;
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenBedTimeMissing() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+        request.morningFeeling = MorningFeeling.GOOD;
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSleepLog_shouldReturnBadRequest_whenMorningFeelingMissing() throws Exception {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.bedTime = LocalDateTime.of(2026, 3, 2, 23, 0);
+        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+
+        mockMvc.perform(post("/api/sleep")
+                        .header("X-User-Id", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 }
