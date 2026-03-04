@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/sleep")
 public class SleepLogController {
@@ -27,7 +29,7 @@ public class SleepLogController {
     @ResponseStatus(HttpStatus.CREATED)
     public SleepLog createSleepLog(
             @RequestHeader("X-User-Id") Integer userId,
-            @RequestBody CreateSleepLogRequest request) {
+            @Valid @RequestBody CreateSleepLogRequest request) {
         return service.createSleepLog(userId, request.bedTime, request.wakeTime, request.morningFeeling);
     }
 

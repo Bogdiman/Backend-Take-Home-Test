@@ -20,10 +20,6 @@ public class SleepLogService {
 
     public SleepLog createSleepLog(Integer userId, LocalDateTime bedTime, 
                                     LocalDateTime wakeTime, MorningFeeling morningFeeling) {
-        if (!wakeTime.isAfter(bedTime)) {
-            throw new IllegalArgumentException("Wake time must be after bed time");
-        }
-
         LocalDate today = LocalDate.now();
         SleepLog sleepLog = repository.findByUserIdAndSleepDate(userId, today)
                 .orElse(new SleepLog());
