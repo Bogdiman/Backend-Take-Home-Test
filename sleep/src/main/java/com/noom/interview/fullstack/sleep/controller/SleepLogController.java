@@ -31,7 +31,7 @@ public class SleepLogController {
     public SleepLog createSleepLog(
             @RequestHeader("X-User-Id") Integer userId,
             @Valid @RequestBody CreateSleepLogRequest request) {
-        return service.createSleepLog(userId, request.bedTime, request.wakeTime, request.morningFeeling);
+        return service.createSleepLog(userId, request.getBedTime(), request.getWakeTime(), request.getMorningFeeling());
     }
 
     @GetMapping("/last-night")
