@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class SleepLogService {
@@ -34,5 +35,10 @@ public class SleepLogService {
         sleepLog.setMorningFeeling(morningFeeling);
 
         return repository.save(sleepLog);
+    }
+
+    public Optional<SleepLog> getLastNightSleep(Integer userId) {
+        LocalDate today = LocalDate.now();
+        return repository.findByUserIdAndSleepDate(userId, today);
     }
 }
