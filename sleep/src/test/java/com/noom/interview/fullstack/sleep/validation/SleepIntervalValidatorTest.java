@@ -11,6 +11,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -198,8 +199,147 @@ class SleepIntervalValidatorTest {
         assertThat(violations).isEmpty();
     }
 
+    // Sleep Date Alignment Tests
+
+    @Test
+    void shouldPassValidation_whenSleepDateMatchesWakeTimeAndBedTimeIsDayBefore() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 3, 23, 0),
+                LocalDateTime.of(2026, 3, 4, 7, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldPassValidation_whenSleepDateMatchesWakeTimeAndBedTimeIsSameDay() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 4, 0, 30),
+                LocalDateTime.of(2026, 3, 4, 8, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldFailValidation_whenWakeTimeDateDoesNotMatchSleepDate() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 4, 23, 0),
+                LocalDateTime.of(2026, 3, 5, 7, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage())
+                .contains("Wake time date")
+                .contains("must match sleep date");
+    }
+
+    @Test
+    void shouldFailValidation_whenWakeTimeDateIsDayBeforeSleepDate() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 5),
+                LocalDateTime.of(2026, 3, 3, 23, 0),
+                LocalDateTime.of(2026, 3, 4, 7, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage())
+                .contains("Wake time date")
+                .contains("must match sleep date");
+    }
+
+    @Test
+    void shouldFailValidation_whenBedTimeDateIsAfterSleepDate() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 5, 0, 0),
+                LocalDateTime.of(2026, 3, 4, 8, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations)
+                .extracting(ConstraintViolation::getMessage)
+                .anySatisfy(msg -> assertThat(msg).contains("Wake time must be after bed time"));
+    }
+
+    @Test
+    void shouldFailValidation_whenBedTimeDateIsTwoDaysBeforeSleepDate_dueToDurationLimit() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 2, 7, 0),
+                LocalDateTime.of(2026, 3, 4, 7, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isNotEmpty();
+        assertThat(violations)
+                .extracting(ConstraintViolation::getMessage)
+                .anySatisfy(msg -> assertThat(msg).contains("Sleep duration must not exceed"));
+    }
+
+    @Test
+    void shouldSkipSleepDateValidation_whenSleepDateIsNull() {
+        CreateSleepLogRequest request = createRequest(
+                LocalDateTime.of(2026, 3, 2, 23, 0),
+                LocalDateTime.of(2026, 3, 3, 7, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldPassValidation_forTypicalOvernightSleepWithSleepDate() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 3, 22, 30),
+                LocalDateTime.of(2026, 3, 4, 6, 30)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldPassValidation_forEarlyMorningSleepWithSleepDate() {
+        CreateSleepLogRequest request = createRequestWithSleepDate(
+                LocalDate.of(2026, 3, 4),
+                LocalDateTime.of(2026, 3, 4, 1, 0),
+                LocalDateTime.of(2026, 3, 4, 9, 0)
+        );
+
+        Set<ConstraintViolation<CreateSleepLogRequest>> violations = validator.validate(request);
+
+        assertThat(violations).isEmpty();
+    }
+
     private CreateSleepLogRequest createRequest(LocalDateTime bedTime, LocalDateTime wakeTime) {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.setBedTime(bedTime);
+        request.setWakeTime(wakeTime);
+        request.setMorningFeeling(MorningFeeling.GOOD);
+        return request;
+    }
+
+    private CreateSleepLogRequest createRequestWithSleepDate(LocalDate sleepDate, LocalDateTime bedTime, LocalDateTime wakeTime) {
+        CreateSleepLogRequest request = new CreateSleepLogRequest();
+        request.setSleepDate(sleepDate);
         request.setBedTime(bedTime);
         request.setWakeTime(wakeTime);
         request.setMorningFeeling(MorningFeeling.GOOD);
