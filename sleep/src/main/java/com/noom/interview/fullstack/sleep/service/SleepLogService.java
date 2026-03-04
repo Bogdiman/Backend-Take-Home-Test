@@ -32,23 +32,23 @@ public class SleepLogService {
         this.repository = repository;
     }
 
-    public SleepLog createSleepLog(Integer userId, LocalDateTime bedTime, 
+    public SleepLog createSleepLog(Integer userId, LocalDate sleepDate, LocalDateTime bedTime, 
                                     LocalDateTime wakeTime, MorningFeeling morningFeeling) {
-        LocalDate today = LocalDate.now();
-        Optional<SleepLog> existing = repository.findByUserIdAndSleepDate(userId, today);
+        LocalDate effectiveDate = sleepDate != null ? sleepDate : LocalDate.now();
+        Optional<SleepLog> existing = repository.findByUserIdAndSleepDate(userId, effectiveDate);
         
         SleepLog sleepLog;
         if (existing.isPresent()) {
             sleepLog = existing.get();
             log.info("Updating existing sleep log id={} for userId={} on date={}", 
-                    sleepLog.getId(), userId, today);
+                    sleepLog.getId(), userId, effectiveDate);
         } else {
             sleepLog = new SleepLog();
-            log.info("Creating new sleep log for userId={} on date={}", userId, today);
+            log.info("Creating new sleep log for userId={} on date={}", userId, effectiveDate);
         }
 
         sleepLog.setUserId(userId);
-        sleepLog.setSleepDate(today);
+        sleepLog.setSleepDate(effectiveDate);
         sleepLog.setBedTime(bedTime);
         sleepLog.setWakeTime(wakeTime);
         sleepLog.setMorningFeeling(morningFeeling);

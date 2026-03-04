@@ -6,12 +6,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @ValidSleepInterval
 @Getter
 @Setter
 public class CreateSleepLogRequest {
+
+    private LocalDate sleepDate;
 
     @NotNull(message = "Bed time is required")
     private LocalDateTime bedTime;

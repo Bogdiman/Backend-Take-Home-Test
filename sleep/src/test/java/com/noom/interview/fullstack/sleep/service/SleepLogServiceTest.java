@@ -47,7 +47,7 @@ class SleepLogServiceTest {
             return log;
         });
 
-        SleepLog result = service.createSleepLog(1, bedTime, wakeTime, MorningFeeling.GOOD);
+        SleepLog result = service.createSleepLog(1, null, bedTime, wakeTime, MorningFeeling.GOOD);
 
         assertThat(result.getId()).isEqualTo(1);
         assertThat(result.getUserId()).isEqualTo(1);
@@ -69,11 +69,31 @@ class SleepLogServiceTest {
         when(repository.findByUserIdAndSleepDate(any(), any())).thenReturn(Optional.of(existingLog));
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        SleepLog result = service.createSleepLog(1, bedTime, wakeTime, MorningFeeling.OK);
+        SleepLog result = service.createSleepLog(1, null, bedTime, wakeTime, MorningFeeling.OK);
 
         assertThat(result.getId()).isEqualTo(1);
         assertThat(result.getMorningFeeling()).isEqualTo(MorningFeeling.OK);
         verify(repository).save(existingLog);
+    }
+
+    @Test
+    void createSleepLog_shouldUseProvidedSleepDate_whenSpecified() {
+        LocalDate pastDate = LocalDate.of(2026, 2, 15);
+        LocalDateTime bedTime = LocalDateTime.of(2026, 2, 14, 23, 0);
+        LocalDateTime wakeTime = LocalDateTime.of(2026, 2, 15, 7, 30);
+
+        when(repository.findByUserIdAndSleepDate(1, pastDate)).thenReturn(Optional.empty());
+        when(repository.save(any())).thenAnswer(invocation -> {
+            SleepLog log = invocation.getArgument(0);
+            log.setId(1);
+            return log;
+        });
+
+        SleepLog result = service.createSleepLog(1, pastDate, bedTime, wakeTime, MorningFeeling.GOOD);
+
+        assertThat(result.getSleepDate()).isEqualTo(pastDate);
+        assertThat(result.getBedTime()).isEqualTo(bedTime);
+        verify(repository).findByUserIdAndSleepDate(1, pastDate);
     }
 
     @Test
