@@ -31,9 +31,6 @@ public class SleepLog {
     @Column(name = "wake_time", nullable = false)
     private LocalDateTime wakeTime;
 
-    @Column(name = "total_time_in_bed_minutes", nullable = false)
-    private Integer totalTimeInBedMinutes;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "morning_feeling", nullable = false)
     private MorningFeeling morningFeeling;
@@ -41,13 +38,11 @@ public class SleepLog {
     public SleepLog() {}
 
     public SleepLog(Integer userId, LocalDate sleepDate, LocalDateTime bedTime, 
-                    LocalDateTime wakeTime, Integer totalTimeInBedMinutes, 
-                    MorningFeeling morningFeeling) {
+                    LocalDateTime wakeTime, MorningFeeling morningFeeling) {
         this.userId = userId;
         this.sleepDate = sleepDate;
         this.bedTime = bedTime;
         this.wakeTime = wakeTime;
-        this.totalTimeInBedMinutes = totalTimeInBedMinutes;
         this.morningFeeling = morningFeeling;
     }
 
@@ -65,9 +60,6 @@ public class SleepLog {
 
     public LocalDateTime getWakeTime() { return wakeTime; }
     public void setWakeTime(LocalDateTime wakeTime) { this.wakeTime = wakeTime; }
-
-    public Integer getTotalTimeInBedMinutes() { return totalTimeInBedMinutes; }
-    public void setTotalTimeInBedMinutes(Integer totalTimeInBedMinutes) { this.totalTimeInBedMinutes = totalTimeInBedMinutes; }
 
     public MorningFeeling getMorningFeeling() { return morningFeeling; }
     public void setMorningFeeling(MorningFeeling morningFeeling) { this.morningFeeling = morningFeeling; }

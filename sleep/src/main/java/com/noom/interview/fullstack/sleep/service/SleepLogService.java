@@ -5,7 +5,6 @@ import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.repository.SleepLogRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -20,8 +19,7 @@ public class SleepLogService {
 
     public SleepLog createSleepLog(Integer userId, LocalDateTime bedTime, 
                                     LocalDateTime wakeTime, MorningFeeling morningFeeling) {
-        int totalMinutes = (int) Duration.between(bedTime, wakeTime).toMinutes();
-        if (totalMinutes <= 0) {
+        if (!wakeTime.isAfter(bedTime)) {
             throw new IllegalArgumentException("Wake time must be after bed time");
         }
 
@@ -33,7 +31,6 @@ public class SleepLogService {
         sleepLog.setSleepDate(today);
         sleepLog.setBedTime(bedTime);
         sleepLog.setWakeTime(wakeTime);
-        sleepLog.setTotalTimeInBedMinutes(totalMinutes);
         sleepLog.setMorningFeeling(morningFeeling);
 
         return repository.save(sleepLog);
