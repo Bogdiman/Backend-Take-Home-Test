@@ -8,6 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -63,4 +65,12 @@ public class SleepLog {
 
     public MorningFeeling getMorningFeeling() { return morningFeeling; }
     public void setMorningFeeling(MorningFeeling morningFeeling) { this.morningFeeling = morningFeeling; }
+
+    @Transient
+    public Integer getTotalTimeInBedMinutes() {
+        if (bedTime == null || wakeTime == null) {
+            return null;
+        }
+        return (int) Duration.between(bedTime, wakeTime).toMinutes();
+    }
 }
