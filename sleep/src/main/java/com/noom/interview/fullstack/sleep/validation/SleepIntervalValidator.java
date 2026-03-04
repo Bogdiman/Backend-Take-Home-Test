@@ -49,7 +49,7 @@ public class SleepIntervalValidator implements ConstraintValidator<ValidSleepInt
         }
 
         if (durationMinutes > maxMinutes) {
-            log.warn("Sleep duration too long: {} minutes (maximum: {} minutes)", durationMinutes, maxMinutes);
+            log.error("Sleep duration too long: {} minutes (maximum: {} minutes)", durationMinutes, maxMinutes);
             context.buildConstraintViolationWithTemplate(
                             String.format("Sleep duration must not exceed %d minutes (got %d minutes)", maxMinutes, durationMinutes))
                     .addConstraintViolation();
