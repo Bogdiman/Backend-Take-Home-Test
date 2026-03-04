@@ -49,12 +49,12 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnCreatedSleepLog() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.bedTime = LocalDateTime.of(2026, 3, 2, 23, 0);
-        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.morningFeeling = MorningFeeling.GOOD;
+        request.setBedTime(LocalDateTime.of(2026, 3, 2, 23, 0));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         SleepLog savedLog = new SleepLog(1, LocalDate.of(2026, 3, 3),
-                request.bedTime, request.wakeTime, MorningFeeling.GOOD);
+                request.getBedTime(), request.getWakeTime(), MorningFeeling.GOOD);
         savedLog.setId(1);
 
         when(sleepLogService.createSleepLog(eq(1), any(), any(), any())).thenReturn(savedLog);
@@ -73,9 +73,9 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnBadRequest_whenUserIdMissing() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.bedTime = LocalDateTime.of(2026, 3, 2, 23, 0);
-        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.morningFeeling = MorningFeeling.GOOD;
+        request.setBedTime(LocalDateTime.of(2026, 3, 2, 23, 0));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         mockMvc.perform(post("/api/sleep")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,9 +120,9 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnBadRequest_whenWakeTimeBeforeBedTime() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.bedTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.wakeTime = LocalDateTime.of(2026, 3, 2, 23, 0);
-        request.morningFeeling = MorningFeeling.GOOD;
+        request.setBedTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 2, 23, 0));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)
@@ -134,9 +134,9 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnBadRequest_whenWakeTimeEqualsBedTime() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.bedTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.morningFeeling = MorningFeeling.GOOD;
+        request.setBedTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)
@@ -148,8 +148,8 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnBadRequest_whenBedTimeMissing() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
-        request.morningFeeling = MorningFeeling.GOOD;
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
+        request.setMorningFeeling(MorningFeeling.GOOD);
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)
@@ -161,8 +161,8 @@ class SleepLogControllerTest {
     @Test
     void createSleepLog_shouldReturnBadRequest_whenMorningFeelingMissing() throws Exception {
         CreateSleepLogRequest request = new CreateSleepLogRequest();
-        request.bedTime = LocalDateTime.of(2026, 3, 2, 23, 0);
-        request.wakeTime = LocalDateTime.of(2026, 3, 3, 7, 30);
+        request.setBedTime(LocalDateTime.of(2026, 3, 2, 23, 0));
+        request.setWakeTime(LocalDateTime.of(2026, 3, 3, 7, 30));
 
         mockMvc.perform(post("/api/sleep")
                         .header("X-User-Id", 1)

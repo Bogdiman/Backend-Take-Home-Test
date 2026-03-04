@@ -1,5 +1,10 @@
 package com.noom.interview.fullstack.sleep.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +20,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sleep_log")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SleepLog {
 
     @Id
@@ -37,9 +46,7 @@ public class SleepLog {
     @Column(name = "morning_feeling", nullable = false)
     private MorningFeeling morningFeeling;
 
-    public SleepLog() {}
-
-    public SleepLog(Integer userId, LocalDate sleepDate, LocalDateTime bedTime, 
+    public SleepLog(Integer userId, LocalDate sleepDate, LocalDateTime bedTime,
                     LocalDateTime wakeTime, MorningFeeling morningFeeling) {
         this.userId = userId;
         this.sleepDate = sleepDate;
@@ -47,24 +54,6 @@ public class SleepLog {
         this.wakeTime = wakeTime;
         this.morningFeeling = morningFeeling;
     }
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
-
-    public LocalDate getSleepDate() { return sleepDate; }
-    public void setSleepDate(LocalDate sleepDate) { this.sleepDate = sleepDate; }
-
-    public LocalDateTime getBedTime() { return bedTime; }
-    public void setBedTime(LocalDateTime bedTime) { this.bedTime = bedTime; }
-
-    public LocalDateTime getWakeTime() { return wakeTime; }
-    public void setWakeTime(LocalDateTime wakeTime) { this.wakeTime = wakeTime; }
-
-    public MorningFeeling getMorningFeeling() { return morningFeeling; }
-    public void setMorningFeeling(MorningFeeling morningFeeling) { this.morningFeeling = morningFeeling; }
 
     @Transient
     public Integer getTotalTimeInBedMinutes() {
