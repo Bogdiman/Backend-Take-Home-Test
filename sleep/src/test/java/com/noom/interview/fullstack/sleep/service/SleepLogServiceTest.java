@@ -1,5 +1,6 @@
 package com.noom.interview.fullstack.sleep.service;
 
+import com.noom.interview.fullstack.sleep.dto.SleepAveragesResponse;
 import com.noom.interview.fullstack.sleep.model.MorningFeeling;
 import com.noom.interview.fullstack.sleep.model.SleepLog;
 import com.noom.interview.fullstack.sleep.repository.SleepLogRepository;
@@ -11,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,5 +98,66 @@ class SleepLogServiceTest {
         Optional<SleepLog> result = service.getLastNightSleep(1);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getLast30DayAverages_shouldReturnAverages_whenDataExists() {
+        LocalDate today = LocalDate.now();
+        SleepLog log1 = new SleepLog(1, today.minusDays(1),
+                LocalDateTime.of(2026, 3, 1, 23, 0),
+                LocalDateTime.of(2026, 3, 2, 7, 0),
+                MorningFeeling.GOOD);
+        SleepLog log2 = new SleepLog(1, today.minusDays(2),
+                LocalDateTime.of(2026, 2, 28, 22, 0),
+                LocalDateTime.of(2026, 3, 1, 6, 0),
+                MorningFeeling.OK);
+        SleepLog log3 = new SleepLog(1, today.minusDays(3),
+                LocalDateTime.of(2026, 2, 27, 0, 0),
+                LocalDateTime.of(2026, 2, 27, 8, 0),
+                MorningFeeling.BAD);
+
+        when(repository.findByUserIdAndSleepDateBetween(any(), any(), any()))
+                .thenReturn(Arrays.asList(log1, log2, log3));
+
+        Optional<SleepAveragesResponse> result = service.getLast30DayAverages(1);
+
+        assertThat(result).isPresent();
+        SleepAveragesResponse response = result.get();
+        assertThat(response.getTotalNights()).isEqualTo(3);
+        assertThat(response.getMorningFeelingFrequencies().get(MorningFeeling.GOOD)).isEqualTo(1);
+        assertThat(response.getMorningFeelingFrequencies().get(MorningFeeling.OK)).isEqualTo(1);
+        assertThat(response.getMorningFeelingFrequencies().get(MorningFeeling.BAD)).isEqualTo(1);
+    }
+
+    @Test
+    void getLast30DayAverages_shouldReturnEmpty_whenNoData() {
+        when(repository.findByUserIdAndSleepDateBetween(any(), any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        Optional<SleepAveragesResponse> result = service.getLast30DayAverages(1);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getLast30DayAverages_shouldCalculateCorrectAverages() {
+        LocalDate today = LocalDate.now();
+        SleepLog log1 = new SleepLog(1, today.minusDays(1),
+                LocalDateTime.of(2026, 3, 1, 22, 0),
+                LocalDateTime.of(2026, 3, 2, 6, 0),
+                MorningFeeling.GOOD);
+        SleepLog log2 = new SleepLog(1, today.minusDays(2),
+                LocalDateTime.of(2026, 2, 28, 23, 0),
+                LocalDateTime.of(2026, 3, 1, 7, 0),
+                MorningFeeling.GOOD);
+
+        when(repository.findByUserIdAndSleepDateBetween(any(), any(), any()))
+                .thenReturn(Arrays.asList(log1, log2));
+
+        Optional<SleepAveragesResponse> result = service.getLast30DayAverages(1);
+
+        assertThat(result).isPresent();
+        SleepAveragesResponse response = result.get();
+        assertThat(response.getAverageTotalTimeInBedMinutes()).isEqualTo(480);
     }
 }
